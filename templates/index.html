@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Speech Analysis</title>
+    <style>
+        /* ...existing styles... */
+        .result {
+            white-space: pre-wrap;
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-family: monospace;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #ffe6e6;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Speech Analysis Tool</h1>
+    <div>Please upload an MP3 file only (max size: 10MB)</div>
+    <form id="uploadForm">
+        <input type="file" name="audio" accept="audio/mpeg,audio/mp3,.mp3" required>
+        <button type="submit">Analyze</button>
+    </form>
+    <div id="loading" style="display: none;">Processing... Please wait.</div>
+    <div id="error" class="error"></div>
+    <div id="result" class="result"></div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const result = document.getElementById('result');
+
+        // Get the current origin
+        const baseUrl = window.location.origin;
+
+        form.onsubmit = async function(e) {
+            e.preventDefault();
+            
+            const file = this.audio.files[0];
+            if (!file) {
+                error.textContent = 'Please select a file';
+                return;
+            }
+
+            // Check file type more thoroughly
+            const validTypes = ['audio/mpeg', 'audio/mp3'];
+            const isMP3 = validTypes.includes(file.type) || file.name.toLowerCase().endsWith('.mp3');
+            
+            if (!isMP3) {
+                error.textContent = 'Please upload an MP3 file only';
+                return;
+            }
+
+            error.textContent = '';
+            result.textContent = '';
+            loading.style.display = 'block';
+            
+            const formData = new FormData();
+            formData.append('audio', file);
+            
+            try {
+                const response = await fetch(`${baseUrl}/analyze`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'An error occurred');
+                }
+                
+                // Format and display the JSON response
+                result.textContent = JSON.stringify(data, null, 2);
+            } catch (err) {
+                error.textContent = err.message;
+            } finally {
+                loading.style.display = 'none';
+            }
+        };
+    </script>
+</body>
+</html>
