@@ -79,38 +79,57 @@ def detect_repetitions(text: str, segments: list) -> list:
     
     return repetitions
 
+# def analyze_grammar(text: str) -> list:
+#     """Basic grammar analysis."""
+#     errors = []
+#     sentences = re.split('[.!?]+', text)
+#
+#     for sentence in sentences:
+#         words = sentence.strip().lower().split()
+#
+#         # Check for double negatives
+#         negatives = ['not', "n't", 'no', 'never', 'none', 'nothing']
+#         neg_count = sum(1 for word in words if any(neg in word for neg in negatives))
+#         if neg_count > 1:
+#             errors.append({
+#                 'type': 'double_negative',
+#                 'text': sentence.strip(),
+#                 'description': 'Multiple negatives in sentence'
+#             })
+#
+#         # Check subject-verb agreement
+#         if len(words) >= 2:
+#             singular_subjects = ['i', 'he', 'she', 'it']
+#             plural_verbs = ['are', 'were', 'have']
+#
+#             for i, word in enumerate(words[:-1]):
+#                 if word in singular_subjects and words[i+1] in plural_verbs:
+#                     errors.append({
+#                         'type': 'subject_verb_agreement',
+#                         'text': f"{word} {words[i+1]}",
+#                         'description': 'Subject-verb agreement error'
+#                     })
+#
+#     return errors
+
+import language_tool_python
+
+
 def analyze_grammar(text: str) -> list:
-    """Basic grammar analysis."""
+    """Enhanced grammar analysis using language_tool."""
+    tool = language_tool_python.LanguageTool('en-US')
+    matches = tool.check(text)
     errors = []
-    sentences = re.split('[.!?]+', text)
-    
-    for sentence in sentences:
-        words = sentence.strip().lower().split()
-        
-        # Check for double negatives
-        negatives = ['not', "n't", 'no', 'never', 'none', 'nothing']
-        neg_count = sum(1 for word in words if any(neg in word for neg in negatives))
-        if neg_count > 1:
-            errors.append({
-                'type': 'double_negative',
-                'text': sentence.strip(),
-                'description': 'Multiple negatives in sentence'
-            })
-        
-        # Check subject-verb agreement
-        if len(words) >= 2:
-            singular_subjects = ['i', 'he', 'she', 'it']
-            plural_verbs = ['are', 'were', 'have']
-            
-            for i, word in enumerate(words[:-1]):
-                if word in singular_subjects and words[i+1] in plural_verbs:
-                    errors.append({
-                        'type': 'subject_verb_agreement',
-                        'text': f"{word} {words[i+1]}",
-                        'description': 'Subject-verb agreement error'
-                    })
-    
+
+    for match in matches:
+        errors.append({
+            'type': match.ruleId,
+            'text': match.context,
+            'description': match.message
+        })
+
     return errors
+
 
 def analyze_speech(audio_path: str) -> dict:
     """Analyze speech and return comprehensive results."""
