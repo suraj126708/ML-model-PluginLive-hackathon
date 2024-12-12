@@ -267,11 +267,11 @@ def handle_not_found(error):
     return jsonify({"error": "Resource not found"}), 404
 
 if __name__ == "__main__":
-    # Use port 3000 which is more reliable in Codespaces
+    # Use the PORT environment variable for deployment, default to 3000
     port = int(os.environ.get("PORT", 3000))
     
     app.run(
-        host='0.0.0.0',
+        host='0.0.0.0',  # Ensure the app binds to all network interfaces
         port=port,
-        debug=True
+        debug=False       # Set to False in production for better performance
     )
